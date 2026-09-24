@@ -1,0 +1,326 @@
+/* Product tour — spotlight overlay (additive). */
+
+body.product-tour-active {
+  overflow: hidden;
+}
+
+.product-tour-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 10050;
+  pointer-events: auto;
+}
+
+.product-tour-spotlight {
+  position: fixed;
+  border-radius: 10px;
+  box-shadow: 0 0 0 9999px rgba(4, 5, 7, 0.74);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  pointer-events: none;
+  transition: top 0.2s ease, left 0.2s ease, width 0.2s ease, height 0.2s ease;
+  z-index: 10051;
+}
+
+.product-tour-spotlight.hidden {
+  display: none;
+}
+
+.product-tour-popover {
+  position: fixed;
+  z-index: 10052;
+  width: min(380px, calc(100vw - 24px));
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+  padding: 18px 20px 16px;
+}
+
+.product-tour-popover-wide {
+  width: min(440px, calc(100vw - 24px));
+}
+
+.product-tour-progress {
+  font-size: 11.5px;
+  color: var(--text-muted, #8b93a7);
+  margin-bottom: 8px;
+}
+
+.product-tour-title {
+  margin: 0 0 8px;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.product-tour-body {
+  margin: 0 0 16px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary, #c8ced9);
+}
+
+.product-tour-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.product-tour-actions-main {
+  display: flex;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* Credentials help (onboarding + settings) */
+
+.credentials-help {
+  margin-top: 14px;
+  max-width: 520px;
+}
+
+.credentials-help-details {
+  border: 1px solid var(--border-soft, var(--border));
+  border-radius: 10px;
+  background: var(--bg-elevated, rgba(255, 255, 255, 0.03));
+  overflow: hidden;
+}
+
+.credentials-help-details summary {
+  cursor: pointer;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  list-style: none;
+  user-select: none;
+}
+
+.credentials-help-details summary::-webkit-details-marker {
+  display: none;
+}
+
+.credentials-help-details summary::before {
+  content: "▸ ";
+  display: inline-block;
+  transition: transform 0.15s ease;
+}
+
+.credentials-help-details[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.credentials-help-body {
+  padding: 0 14px 14px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: var(--text-secondary, #c8ced9);
+}
+
+.credentials-help-body p {
+  margin: 0 0 10px;
+}
+
+.credentials-help-body code {
+  font-size: 12px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(127, 127, 127, 0.15);
+}
+
+/* Illustrated Redmine hint (replaces screenshot) */
+.api-key-guide {
+  --guide-chrome: #628db6;
+  --guide-chrome-dark: #4a7196;
+  --guide-bg: #f7f4ef;
+  --guide-surface: #ffffff;
+  --guide-text: #2c3340;
+  --guide-muted: #6b7380;
+  --guide-link: #1a5fb4;
+  --guide-mark: #c6462b;
+  margin-top: 4px;
+  border-radius: 12px;
+  border: 1px solid var(--border, rgba(0, 0, 0, 0.12));
+  overflow: hidden;
+  background: var(--guide-bg);
+  box-shadow: 0 10px 28px rgba(40, 30, 20, 0.08);
+}
+
+.api-key-guide-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  background: linear-gradient(180deg, var(--guide-chrome) 0%, var(--guide-chrome-dark) 100%);
+  color: #fff;
+  font-size: 11px;
+}
+
+.api-key-guide-brand {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.api-key-guide-userbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.api-key-guide-muted {
+  opacity: 0.85;
+}
+
+.api-key-guide-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.api-key-guide-pill.is-target {
+  background: #fff;
+  color: var(--guide-chrome-dark);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.35);
+}
+
+.api-key-guide-body {
+  padding: 14px 14px 16px;
+  color: var(--guide-text);
+}
+
+.api-key-guide-title {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.api-key-guide-meta {
+  margin: 0 0 12px;
+  font-size: 11.5px;
+  color: var(--guide-muted);
+}
+
+.api-key-guide-card {
+  background: var(--guide-surface);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.api-key-guide-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  font-size: 12.5px;
+}
+
+.api-key-guide-row:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.api-key-guide-row:first-child {
+  padding-top: 0;
+}
+
+.api-key-guide-label {
+  font-weight: 600;
+}
+
+.api-key-guide-side {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  color: var(--guide-muted);
+  font-size: 11.5px;
+}
+
+.api-key-guide-show {
+  display: inline-flex;
+  align-items: center;
+  color: var(--guide-link);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.api-key-guide-show.is-target {
+  padding: 2px 8px;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--guide-mark) 12%, #fff);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--guide-mark) 35%, transparent);
+}
+
+.api-key-guide-arrow {
+  display: none;
+}
+
+.api-key-guide-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.api-key-guide-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--guide-mark) 10%, #fff);
+  border: 1px solid color-mix(in srgb, var(--guide-mark) 28%, transparent);
+  color: var(--guide-text);
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.api-key-guide-step-num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--guide-mark);
+  color: #fff;
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+html[data-theme="dark"] .api-key-guide {
+  --guide-bg: #1c222d;
+  --guide-surface: #252c3a;
+  --guide-text: #e8ecf4;
+  --guide-muted: #9aa3b5;
+  --guide-link: #7eb6ff;
+}
+
+html[data-theme="dark"] .api-key-guide-card {
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+html[data-theme="dark"] .api-key-guide-row {
+  border-bottom-color: rgba(255, 255, 255, 0.06);
+}
+
+html[data-theme="dark"] .api-key-guide-step {
+  background: color-mix(in srgb, var(--guide-mark) 18%, var(--guide-surface));
+}
+
+html[data-theme="dark"] .api-key-guide-show.is-target {
+  background: color-mix(in srgb, var(--guide-mark) 22%, var(--guide-surface));
+}

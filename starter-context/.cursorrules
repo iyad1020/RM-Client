@@ -1,0 +1,19 @@
+# Redmine Desktop Client — краткие правила
+
+## Куда смотреть
+- Полные правила: `.cursor/rules/redmine-desktop-client.mdc`
+- Бутстрап: `.cursor/skills/redmine-desktop-bootstrap/SKILL.md`
+- Workflow фич: `.cursor/skills/redmine-desktop-feature-workflow/SKILL.md`
+
+## Цель
+Сделать удобный Windows-клиент для Redmine с полноценной синхронизацией, крупным интерфейсом и сохранением фильтров/состояния.
+
+## Принципы
+- Простые технологии для первого проекта.
+- Никакой магии, шаг за шагом.
+- Всегда объяснять что сделано и как проверить.
+- Приоритет UX и стабильности над «красивой архитектурой».
+
+## Стек (старт)
+- Electron + Node.js
+- HTML/CSS/JS (без фреймворков на старте)

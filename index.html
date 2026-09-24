@@ -1,0 +1,1110 @@
+<!doctype html>
+<html lang="ru" data-theme="sepia">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RM Client</title>
+    <link rel="icon" type="image/png" href="./assets/icon.png" />
+    <script>
+      (function () {
+        try {
+          var theme = localStorage.getItem("redmine-client:theme");
+          if (theme === "dark" || theme === "sepia") {
+            document.documentElement.setAttribute("data-theme", theme);
+          }
+        } catch (e) {}
+      })();
+    </script>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="topbar">
+        <div class="issue-scope-bar">
+          <div class="scope-toggle" id="issue-scope-toggle" role="group" aria-label="Область просмотра">
+            <button type="button" class="scope-btn active" data-issue-scope="mine">Мои</button>
+            <button type="button" class="scope-btn" data-issue-scope="authored">Поставленные мной</button>
+            <button type="button" class="scope-btn" data-issue-scope="watched">Отслеживаемые</button>
+            <button type="button" class="scope-btn" data-issue-scope="all">Все</button>
+          </div>
+        </div>
+        <div class="topbar-row1">
+          <div class="filters-primary-row">
+            <div class="field field-plain">
+              <label for="project-filter" class="visually-hidden">Проект</label>
+              <select id="project-filter"></select>
+            </div>
+            <div class="field field-plain filters-search-field">
+              <label for="global-search" class="visually-hidden">Поиск</label>
+              <input id="global-search" type="search" placeholder="Текст в теме, проекте, авторе" />
+            </div>
+            <div class="actions compact-actions">
+              <button type="button" id="load-issues-btn" class="btn-primary">Обновить</button>
+              <button type="button" id="reset-filters-btn" class="btn-secondary">Сбросить</button>
+            </div>
+
+            <div class="top-icons">
+              <button id="time-entries-btn" class="icon-btn" title="Трудозатраты">
+                <span aria-hidden="true">&#9201;</span>
+              </button>
+              <button id="open-link-btn" class="icon-btn" title="Открыть задачу по ссылке">
+                <span aria-hidden="true">&#128279;</span>
+              </button>
+              <div class="notifications">
+                <button id="notifications-btn" class="icon-btn" title="Обновления задач">
+                  <span aria-hidden="true">&#128276;</span>
+                  <span id="notifications-count" class="badge hidden">0</span>
+                </button>
+              </div>
+              <button id="toggle-connection-btn" class="icon-btn" title="Настройки подключения">
+                <span aria-hidden="true">&#9881;</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="filter-chips-row" id="filters-chips-row">
+            <div class="settings-anchor add-filter-anchor">
+              <button type="button" id="add-list-filter-btn" class="add-filter-chip-btn">
+                <span aria-hidden="true">+</span> Фильтр
+              </button>
+              <div id="add-list-filter-popover" class="settings-popover filter-dropdown hidden">
+                <div class="filter-option-list">
+                  <button type="button" class="filter-option" data-chip-target="status-chip">Статус</button>
+                  <button type="button" class="filter-option" data-chip-target="priority-chip">Приоритет</button>
+                  <button type="button" class="filter-option" id="add-filter-assignee-option" data-chip-target="assignee-chip">Исполнитель</button>
+                  <button type="button" class="filter-option" data-chip-target="author-chip">Автор</button>
+                  <button type="button" class="filter-option" data-chip-target="due-chip">Срок</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="filter-chip chip-hidden" id="status-chip" data-agile-hide="true">
+              <button type="button" class="filter-chip-label" id="status-filter-trigger" aria-labelledby="status-filter-label" aria-haspopup="listbox" aria-expanded="false">
+                <span id="status-filter-label" class="visually-hidden">Статус</span>
+                Статус: <span id="status-filter-summary">Все статусы</span>
+              </button>
+              <button type="button" class="filter-chip-remove" data-chip-remove="status-chip" title="Убрать фильтр">&times;</button>
+              <div class="filter-chip-popover hidden" id="status-filter-panel" role="listbox" aria-multiselectable="true">
+                <div class="multi-select-actions">
+                  <button type="button" id="status-filter-select-all" class="link-btn">Выбрать все</button>
+                  <button type="button" id="status-filter-clear-all" class="link-btn">Снять все</button>
+                </div>
+                <div class="checklist multi-select-list" id="status-filter-list"></div>
+              </div>
+            </div>
+
+            <div class="filter-chip chip-hidden" id="priority-chip" data-agile-hide="true">
+              <button type="button" class="filter-chip-label" id="priority-filter-trigger"
+                aria-labelledby="priority-filter-label" aria-haspopup="listbox" aria-expanded="false">
+                <span id="priority-filter-label" class="visually-hidden">Приоритет</span>
+                Приоритет: <span id="priority-filter-summary">Все приоритеты</span>
+              </button>
+              <button type="button" class="filter-chip-remove" data-chip-remove="priority-chip" title="Убрать фильтр">&times;</button>
+              <div class="filter-chip-popover hidden" id="priority-filter-panel" role="listbox" aria-multiselectable="true">
+                <div class="multi-select-actions">
+                  <button type="button" id="priority-filter-select-all" class="link-btn">Выбрать все</button>
+                  <button type="button" id="priority-filter-clear-all" class="link-btn">Снять все</button>
+                </div>
+                <div class="checklist multi-select-list" id="priority-filter-list"></div>
+              </div>
+            </div>
+
+            <div class="filter-chip chip-hidden" id="due-chip" data-agile-hide="true">
+              <button type="button" class="filter-chip-label" id="due-chip-trigger">
+                Срок: <span id="due-chip-summary">любой</span>
+              </button>
+              <button type="button" class="filter-chip-remove" data-chip-remove="due-chip" title="Убрать фильтр">&times;</button>
+              <div class="filter-chip-popover hidden due-filter-popover" id="due-filter-field">
+                <div class="due-filter-mode-toggle">
+                  <button type="button" class="due-mode-btn active" data-due-mode="period">Период</button>
+                  <button type="button" class="due-mode-btn" data-due-mode="empty">Без срока</button>
+                </div>
+                <div class="due-filter-controls" id="due-range-controls">
+                  <input type="date" id="due-from" title="Срок с" aria-label="Срок с" />
+                  <span class="due-filter-sep">—</span>
+                  <input type="date" id="due-to" title="Срок по" aria-label="Срок по" />
+                </div>
+                <input type="checkbox" id="due-empty-only" class="visually-hidden" />
+              </div>
+            </div>
+
+            <div class="filter-chip chip-hidden" id="assignee-chip" data-agile-hide="true">
+              <button type="button" class="filter-chip-label" id="assignee-chip-trigger">
+                Исполнитель: <span id="assignee-chip-summary">Все</span>
+              </button>
+              <button type="button" class="filter-chip-remove" data-chip-remove="assignee-chip" title="Убрать фильтр">&times;</button>
+              <span class="field-lock-hint hidden" id="assignee-filter-lock-hint">только вы</span>
+              <div class="filter-chip-popover hidden" id="assignee-filter-field">
+                <select id="assignee-filter"></select>
+              </div>
+            </div>
+
+            <div class="filter-chip chip-hidden" id="author-chip" data-agile-hide="true">
+              <button type="button" class="filter-chip-label" id="author-filter-trigger"
+                aria-labelledby="author-filter-label" aria-haspopup="listbox" aria-expanded="false">
+                <span id="author-filter-label" class="visually-hidden">Автор</span>
+                Автор: <span id="author-filter-summary">Все авторы</span>
+              </button>
+              <button type="button" class="filter-chip-remove" data-chip-remove="author-chip" title="Убрать фильтр">&times;</button>
+              <div class="filter-chip-popover hidden" id="author-filter-panel" role="listbox" aria-multiselectable="true">
+                <div class="multi-select-actions">
+                  <button type="button" id="author-filter-select-all" class="link-btn">Выбрать все</button>
+                  <button type="button" id="author-filter-clear-all" class="link-btn">Снять все</button>
+                </div>
+                <div class="checklist multi-select-list" id="author-filter-list"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="topbar-row2">
+          <div class="topbar-row2-left">
+            <div class="scope-toggle view-switcher" role="group" aria-label="Режим отображения">
+              <button type="button" id="view-list-btn" class="scope-btn active">Список</button>
+              <button type="button" id="view-agile-btn" class="scope-btn">Agile</button>
+            </div>
+
+            <div id="list-scope-controls" class="scope-toggle" role="group" aria-label="Область статусов">
+              <button type="button" id="status-scope-open-btn" class="scope-btn active">Открытые</button>
+              <button type="button" id="status-scope-all-btn" class="scope-btn">Все</button>
+            </div>
+          </div>
+
+          <div class="topbar-row2-right">
+            <div id="sync-compact" class="sync-compact" title="Статус синхронизации">
+              <span id="sync-status-dot" class="sync-status-dot online"></span>
+              <span id="sync-status-text" class="sync-status-text">Готово</span>
+              <span id="offline-queue-badge" class="offline-queue-badge hidden"></span>
+              <button type="button" id="sync-now-btn" class="icon-btn sync-refresh-btn" title="Синхронизировать">
+                <span aria-hidden="true">&#8635;</span>
+              </button>
+            </div>
+
+            <div id="list-only-actions" class="topbar-row2-actions">
+              <div class="settings-anchor">
+                <button type="button" id="edit-columns-btn" class="link-btn">Настроить колонки</button>
+                <div id="columns-settings-popover" class="settings-popover hidden">
+                  <div class="settings-popover-head"><strong>Колонки списка задач</strong></div>
+                  <div class="checklist">
+                    <label class="checklist-item"><input type="checkbox" checked disabled /> Тема</label>
+                    <label class="checklist-item"><input type="checkbox" checked data-col-toggle="project" /> Проект</label>
+                    <label class="checklist-item"><input type="checkbox" checked data-col-toggle="assignee" /> Исполнитель</label>
+                    <label class="checklist-item"><input type="checkbox" checked data-col-toggle="status" /> Статус</label>
+                    <label class="checklist-item"><input type="checkbox" data-col-toggle="priority" /> Приоритет</label>
+                    <label class="checklist-item"><input type="checkbox" data-col-toggle="hours" /> Потрачено часов</label>
+                    <label class="checklist-item"><input type="checkbox" data-col-toggle="author" /> Автор</label>
+                    <label class="checklist-item"><input type="checkbox" data-col-toggle="estimated_hours" /> Оценка</label>
+                    <label class="checklist-item"><input type="checkbox" checked data-col-toggle="due" /> Срок завершения</label>
+                  </div>
+                  <div class="actions">
+                    <button type="button" id="columns-settings-save-btn" class="btn-primary btn-sm">Сохранить</button>
+                    <button type="button" id="columns-settings-close-btn" class="btn-secondary btn-sm">Отмена</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <div id="notifications-popover" class="notifications-popover hidden">
+        <div class="notifications-head">
+          <strong>Обновления задач</strong>
+          <button type="button" id="clear-notifications-btn" class="link-btn">Очистить</button>
+        </div>
+        <div id="sync-failures-list" class="sync-failures-list hidden"></div>
+        <div id="notifications-list" class="notifications-list"></div>
+      </div>
+
+      <section id="connection-card" class="card hidden">
+        <div class="card-head">
+          <h2 class="settings-brand-title"><img class="settings-brand-logo" src="./assets/icon.png" alt="" width="22" height="22" /><span>Подключение к Redmine</span></h2>
+          <div class="card-head-actions">
+            <span class="connection-status" id="connection-status-chip"><span class="dot"></span><span class="connection-status-label">Не подключено</span></span>
+            <button type="button" id="close-connection-btn" class="btn-secondary btn-sm settings-back-btn">&larr; К списку задач</button>
+          </div>
+        </div>
+        <form id="connection-form" class="field-rows">
+          <div class="field-row">
+            <label for="redmine-url">URL Redmine</label>
+            <div class="field-control">
+              <input id="redmine-url" name="redmineUrl" type="url" placeholder="https://example.redmine.com" required />
+              <span class="field-hint">Адрес сервера Redmine, доступный из вашей сети</span>
+            </div>
+          </div>
+          <div class="field-row">
+            <label for="api-key">API key</label>
+            <div class="field-control">
+              <input id="api-key" name="apiKey" type="password" placeholder="Ваш API key" required />
+              <span class="field-hint">Redmine &rarr; Моя учётная запись &rarr; API access key</span>
+            </div>
+          </div>
+          <div class="actions">
+            <button type="submit" id="save-btn" class="btn-primary">Сохранить</button>
+            <button type="button" id="check-btn" class="btn-secondary">Проверить</button>
+          </div>
+        </form>
+
+        <section class="settings-section">
+          <h3>Синхронизация</h3>
+          <div id="sync-projects-list" class="sync-projects-list muted">Нет данных.</div>
+          <div class="actions">
+            <button type="button" id="edit-synced-projects-btn" class="btn-secondary btn-sm">Изменить</button>
+            <button type="button" id="resync-all-btn" class="btn-secondary btn-sm">Полная пересинхронизация</button>
+            <button type="button" id="clear-cache-btn" class="btn-secondary btn-sm btn-danger">Очистить кэш</button>
+          </div>
+        </section>
+
+        <section class="settings-section">
+          <h3>Кэш</h3>
+          <div class="cache-stats">
+            <div class="cache-stat"><span class="cache-stat-label">Размер БД</span><span id="cache-db-size" class="cache-stat-value">&mdash;</span></div>
+            <div class="cache-stat"><span class="cache-stat-label">Задач в кэше</span><span id="cache-issues-count" class="cache-stat-value">&mdash;</span></div>
+          </div>
+          <label class="toggle-row">
+            <span class="toggle-text">
+              <span class="toggle-title">Автосинхронизация</span>
+              <span class="toggle-desc">Список задач обновляется в фоне без нажатия «Обновить»</span>
+            </span>
+            <span class="switch">
+              <input type="checkbox" id="settings-autosync-toggle" checked />
+              <span class="switch-track"><span class="switch-thumb"></span></span>
+            </span>
+          </label>
+          <div class="field-row">
+            <label for="autosync-interval">Интервал</label>
+            <select id="autosync-interval">
+              <option value="1">1 минута</option>
+              <option value="5" selected>5 минут</option>
+              <option value="15">15 минут</option>
+              <option value="30">30 минут</option>
+            </select>
+          </div>
+          <div class="field-row">
+            <label for="deadline-alert-days">Напоминать о сроке за</label>
+            <select id="deadline-alert-days">
+              <option value="1">1 день</option>
+              <option value="2">2 дня</option>
+              <option value="3" selected>3 дня</option>
+              <option value="5">5 дней</option>
+              <option value="7">7 дней</option>
+              <option value="14">14 дней</option>
+            </select>
+          </div>
+          <p class="field-hint">Задачи с подходящим сроком появятся в колокольчике и в системных уведомлениях Windows. Просроченные — всегда.</p>
+        </section>
+
+        <section class="settings-section">
+          <h3>Оформление</h3>
+          <div class="field-row">
+            <label>Тема</label>
+            <div class="scope-toggle" id="theme-switcher" role="group" aria-label="Тема оформления">
+              <button type="button" id="theme-sepia-btn" class="scope-btn active" data-theme-value="sepia">Сепия</button>
+              <button type="button" id="theme-dark-btn" class="scope-btn" data-theme-value="dark">Тёмная</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="settings-section">
+          <h3>Файлы и папки</h3>
+          <p class="field-hint" style="margin-top:0">Где на этом компьютере хранятся данные RM Client. При удалении приложения папку данных можно очистить отдельно.</p>
+          <div id="data-paths-list" class="data-paths-list">
+            <div class="muted">Загрузка путей&hellip;</div>
+          </div>
+        </section>
+
+        <section class="settings-section">
+          <h3>Справочники</h3>
+          <button type="button" id="sync-reference-btn" class="btn-secondary btn-sm">Обновить справочники</button>
+          <span class="field-hint">Проекты, пользователи, статусы, приоритеты</span>
+        </section>
+      </section>
+
+      <section id="issues-view" class="card issues-card">
+        <div class="list-header">
+          <h2 id="issues-title">Список задач</h2>
+          <div class="list-header-actions">
+            <span id="issues-count" class="muted">0 задач</span>
+            <button type="button" id="create-issue-btn" class="btn-primary btn-sm">+ Создать задачу</button>
+          </div>
+        </div>
+        <div class="issues-columns-head">
+          <span data-col="subject">Тема</span><button type="button" class="col-sort-btn" data-col="project" data-sort-key="project" title="Сортировать по проекту">Проект<span class="col-sort-indicator" aria-hidden="true"></span></button><button type="button" class="col-sort-btn" data-col="assignee" data-sort-key="assignee" title="Сортировать по исполнителю">Исполнитель<span class="col-sort-indicator" aria-hidden="true"></span></button><button type="button" class="col-sort-btn" data-col="status" data-sort-key="status" title="Сортировать по статусу">Статус<span class="col-sort-indicator" aria-hidden="true"></span></button><button type="button" class="col-sort-btn hidden" data-col="priority" data-sort-key="priority" title="Сортировать по приоритету">Приоритет<span class="col-sort-indicator" aria-hidden="true"></span></button><span data-col="hours" class="hidden">Часы</span><span data-col="author" class="hidden">Автор</span><span data-col="estimated_hours" class="hidden">Оценка</span><button type="button" class="col-sort-btn" data-col="due" data-sort-key="due" title="Сортировать по сроку">Срок<span class="col-sort-indicator" aria-hidden="true"></span></button>
+        </div>
+        <div id="issues-list" class="issues-list table-list"></div>
+      </section>
+
+      <section id="agile-view" class="card agile-card hidden" data-screen-label="Agile доска">
+        <div class="board-toolbar-row1">
+          <div class="board-header-titles">
+            <h2>Доска задач</h2>
+            <span id="board-subtitle" class="muted">ФП — Сопровождение</span>
+          </div>
+          <div id="offline-badge" class="offline-badge hidden">Офлайн — показаны локальные данные</div>
+          <button type="button" id="board-toolbar-toggle-btn" class="board-toolbar-toggle" title="Свернуть панель">
+            <span id="board-toolbar-chevron" class="board-toolbar-chevron">&#9650;</span>
+          </button>
+        </div>
+
+        <div id="board-toolbar-collapsible" class="board-toolbar-collapsible">
+          <div class="board-toolbar-row2">
+            <input id="board-search" type="search" class="board-search" placeholder="Поиск по теме" />
+            <div class="settings-anchor add-filter-anchor">
+              <button type="button" id="add-filter-btn" class="add-filter-chip-btn">
+                <span aria-hidden="true">+</span> Фильтр
+              </button>
+              <div id="add-filter-popover" class="settings-popover filter-dropdown hidden">
+                <div id="filter-option-list" class="filter-option-list"></div>
+              </div>
+            </div>
+            <div id="filter-chips-row" class="filter-chips-row hidden"></div>
+            <div class="options-panel">
+              <button type="button" id="options-toggle-btn" class="options-toggle">
+                <span class="options-chevron">&#8250;</span> Опции
+              </button>
+              <div id="options-body" class="options-body hidden">
+                <div class="options-section">
+                  <h4>Столбцы доски</h4>
+                  <div id="options-columns-grid" class="options-grid"></div>
+                </div>
+                <div class="options-section">
+                  <h4>Поля на карточке</h4>
+                  <div id="options-fields-grid" class="options-grid"></div>
+                </div>
+                <div class="options-section options-section-wide">
+                  <h4>Закрытые колонки</h4>
+                  <label class="options-limit-row" for="options-closed-limit">
+                    <span>Показывать последних задач</span>
+                    <input type="number" id="options-closed-limit" min="0" max="500" step="1" value="10" />
+                  </label>
+                  <p class="options-hint muted">Для Done и других закрытых статусов. 0 — без ограничения.</p>
+                </div>
+                <div class="options-footer actions">
+                  <button type="button" id="options-apply-btn" class="link-btn options-apply">&#10003; Применить</button>
+                  <button type="button" id="options-clear-btn" class="link-btn options-clear">&#8635; Очистить</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="kanban-scroller" class="kanban-scroller"></div>
+
+        <div id="board-empty-state" class="board-empty-state hidden">
+          <div class="board-empty-icon" aria-hidden="true"><span></span><span></span><span></span></div>
+          <h3 id="board-empty-title">Нет задач на доске</h3>
+          <p id="board-empty-message">Синхронизируйте проект или измените фильтры</p>
+          <button type="button" id="board-sync-now-btn" class="btn-primary">Синхронизировать сейчас</button>
+        </div>
+      </section>
+
+      <section id="issue-page" class="card hidden">
+        <div class="list-header">
+          <div class="issue-page-header">
+            <button id="back-to-list-btn" type="button" class="btn-secondary">&larr; Назад к списку</button>
+            <h2 id="issue-title" class="field-view">Задача</h2>
+            <input id="edit-subject" type="text" class="field-edit issue-subject-edit" />
+            <a id="issue-parent-chip" class="related-chip hidden" href="#"></a>
+            <a id="issue-related-chip" class="related-chip hidden" href="#"></a>
+          </div>
+          <div class="issue-header-actions">
+            <button id="create-subtask-btn" type="button" class="btn-primary btn-sm">Сделать подзадачу</button>
+            <button id="copy-issue-link-btn" type="button" class="btn-secondary btn-sm">Получить ссылку</button>
+            <span id="issue-link-label" class="muted">-</span>
+
+            <div class="issue-mini-sync" id="issue-mini-sync" title="Статус синхронизации">
+              <span id="issue-mini-sync-dot" class="sync-status-dot online"></span>
+              <span id="issue-mini-sync-text" class="sync-status-text">Готово</span>
+            </div>
+            <button id="issue-page-notifications-btn" class="icon-btn" title="Уведомления">
+              <span aria-hidden="true">&#128276;</span>
+              <span id="issue-page-notifications-count" class="badge hidden">0</span>
+            </button>
+          </div>
+        </div>
+
+        <article id="issue-page-content" class="issue-page-content">
+          <div class="issue-layout">
+            <div class="issue-main">
+              <section class="issue-block">
+                <div class="card-head">
+                  <h3>Основная информация</h3>
+                  <button type="button" id="toggle-edit-btn" class="btn-secondary btn-sm field-view">Редактировать</button>
+                  <div id="edit-actions" class="edit-actions-inline field-edit">
+                    <button type="submit" form="issue-edit-form" id="save-issue-btn" class="btn-primary btn-sm">Сохранить</button>
+                    <button type="button" id="cancel-edit-btn" class="btn-secondary btn-sm">Отмена</button>
+                  </div>
+                </div>
+                <form id="issue-edit-form">
+                  <div id="issue-main-meta" class="kv-grid"></div>
+                  <input id="edit-start-date" type="hidden" />
+                  <select id="edit-watchers" multiple hidden aria-hidden="true"></select>
+                </form>
+              </section>
+
+              <section class="issue-block">
+                <h3>Описание</h3>
+                <div id="issue-description" class="issue-text field-view muted">Выберите задачу из списка.</div>
+                <textarea id="edit-description" rows="8" class="field-edit issue-description-edit"></textarea>
+              </section>
+
+              <section class="issue-block">
+                <h3>Вложения</h3>
+                <div id="issue-attachments" class="attachments-list muted">Нет данных.</div>
+              </section>
+
+              <section id="issue-children-block" class="issue-block hidden">
+                <h3>Подзадачи</h3>
+                <div id="issue-children" class="linked-issues-list muted">Нет данных.</div>
+              </section>
+
+              <section id="issue-relations-block" class="issue-block hidden">
+                <h3>Связанные задачи</h3>
+                <div id="issue-relations" class="linked-issues-list muted">Нет данных.</div>
+              </section>
+
+              <section class="issue-block">
+                <div class="card-head">
+                  <h3>Активность</h3>
+                  <button type="button" id="toggle-journal-sort-btn" class="link-btn">Сначала старые</button>
+                </div>
+                <div id="issue-journals" class="activity-feed muted">Нет данных.</div>
+
+                <form id="issue-comment-form" class="comment-form">
+                  <label for="edit-notes" class="visually-hidden">Комментарий</label>
+                  <div class="comment-toolbar">
+                    <button type="button" data-textile="bold" title="Жирный"><b>B</b></button>
+                    <button type="button" data-textile="italic" title="Курсив"><i>I</i></button>
+                    <button type="button" data-textile="underline" title="Подчёркнутый" style="text-decoration:underline">U</button>
+                    <button type="button" data-textile="strike" title="Зачёркнутый" style="text-decoration:line-through">S</button>
+                    <span class="divider"></span>
+                    <button type="button" data-textile="h1" title="Заголовок 1" style="font-size:11px">H1</button>
+                    <button type="button" data-textile="h2" title="Заголовок 2" style="font-size:11px">H2</button>
+                    <button type="button" data-textile="h3" title="Заголовок 3" style="font-size:11px">H3</button>
+                    <span class="divider"></span>
+                    <button type="button" data-textile="ul" title="Маркированный список">&#8801;</button>
+                    <button type="button" data-textile="ol" title="Нумерованный список">&#8942;</button>
+                    <span class="divider"></span>
+                    <button type="button" data-textile="code" title="Код" style="font-family:var(--font-mono);font-size:11px">&lt;/&gt;</button>
+                    <button type="button" data-textile="link" title="Ссылка">&#128279;</button>
+                    <button type="button" data-textile="image" title="Вставить изображение" style="color:var(--accent)">&#128247;</button>
+                  </div>
+                  <textarea id="edit-notes" rows="3" placeholder="Добавьте комментарий&hellip;"></textarea>
+                  <input id="comment-attach-input" type="file" accept="image/*" multiple hidden />
+                  <div id="comment-attachments-list" class="comment-attachments-list hidden"></div>
+                  <div class="comment-hint">Можно вставить скриншот прямо из буфера обмена — Ctrl+V</div>
+                  <div class="actions">
+                    <button id="save-comment-btn" type="submit" class="btn-primary">Добавить комментарий</button>
+                  </div>
+                </form>
+              </section>
+            </div>
+
+            <aside class="issue-sidebar">
+              <section class="issue-block watchers-block">
+                <div class="watchers-head">
+                  <h3>Наблюдатели</h3>
+                  <button type="button" id="add-watcher-btn" class="btn-secondary btn-sm">+ Добавить</button>
+                </div>
+                <div id="issue-watchers" class="watchers-list muted">Нет данных.</div>
+                <div id="watcher-picker" class="watcher-picker hidden" role="dialog" aria-label="Добавить наблюдателей">
+                  <input id="watcher-picker-search" type="search" placeholder="Поиск по имени&hellip;" autocomplete="off" />
+                  <div id="watcher-picker-list" class="watcher-picker-list"></div>
+                  <div class="watcher-picker-actions">
+                    <button type="button" id="watcher-picker-apply" class="btn-primary btn-sm">Применить</button>
+                    <button type="button" id="watcher-picker-cancel" class="btn-secondary btn-sm">Отмена</button>
+                  </div>
+                </div>
+              </section>
+            </aside>
+          </div>
+        </article>
+      </section>
+
+      <section id="time-entries-view" class="card hidden">
+        <div class="list-header">
+          <button id="back-from-time-btn" type="button" class="btn-secondary">&larr; Назад к списку</button>
+          <h2 id="time-entries-title">Трудозатраты</h2>
+          <button type="button" id="add-time-entry-btn" class="btn-primary btn-sm">+ Добавить</button>
+        </div>
+        <div id="time-entries-list" class="time-entries-list muted">Нет данных.</div>
+      </section>
+
+      <p id="status" class="status" aria-live="polite"></p>
+    </main>
+
+    <div id="create-issue-modal" class="modal hidden">
+      <div class="modal-content" style="width:min(600px, 92vw)">
+        <h3>Создать задачу</h3>
+        <form id="create-issue-form" class="field-rows" novalidate>
+          <div class="two-col">
+            <div class="field-row">
+              <label for="create-project">Проект</label>
+              <select id="create-project" required></select>
+            </div>
+            <div class="field-row">
+              <label for="create-tracker">Трекер</label>
+              <select id="create-tracker" required></select>
+            </div>
+          </div>
+          <div class="field-row">
+            <label for="create-subject">Тема *</label>
+            <input id="create-subject" type="text" placeholder="Кратко опишите задачу" required />
+            <span class="field-error">Обязательное поле</span>
+          </div>
+          <div class="field-row">
+            <label for="create-description">Описание *</label>
+            <textarea id="create-description" rows="4" required></textarea>
+            <span class="field-error">Обязательное поле</span>
+          </div>
+          <div class="two-col">
+            <div class="field-row">
+              <label for="create-priority">Приоритет *</label>
+              <select id="create-priority" required></select>
+              <span class="field-error">Обязательное поле</span>
+            </div>
+            <div class="field-row">
+              <label for="create-assignee">Исполнитель *</label>
+              <select id="create-assignee" required></select>
+              <span class="field-error">Обязательное поле</span>
+            </div>
+          </div>
+          <div class="two-col">
+            <div class="field-row">
+              <label for="create-start-date">Дата начала *</label>
+              <input id="create-start-date" type="date" required />
+              <span class="field-error">Обязательное поле</span>
+            </div>
+            <div class="field-row">
+              <label for="create-due-date">Срок *</label>
+              <input id="create-due-date" type="date" />
+              <label class="checklist-item">
+                <input type="checkbox" id="create-no-deadline-checkbox" />
+                Без срока (регламентная/срочная задача)
+              </label>
+              <span class="field-error">Укажите срок или отметьте «Без срока»</span>
+            </div>
+          </div>
+          <div class="two-col">
+            <div class="field-row">
+              <label for="create-estimated-hours">Оценка трудозатрат</label>
+              <input id="create-estimated-hours" type="number" min="0" step="0.1" placeholder="часы" />
+            </div>
+          </div>
+          <div id="create-parent-row" class="field-row hidden">
+            <label>Родительская задача</label>
+            <div id="create-parent-label" class="muted"></div>
+          </div>
+          <div class="field-row">
+            <label>Вложения</label>
+            <div class="field-control">
+              <button type="button" id="create-attach-btn" class="btn-secondary btn-sm">Выбрать файлы</button>
+              <input id="create-attach-input" type="file" multiple class="visually-hidden" />
+              <div id="create-drop-zone" class="create-drop-zone">Перетащите файлы сюда или вставьте скриншот (Ctrl+V)</div>
+              <div id="create-attachments-list" class="create-attachments-list hidden"></div>
+            </div>
+          </div>
+          <div class="actions">
+            <button type="submit" id="create-issue-submit-btn" class="btn-primary">Создать</button>
+            <button type="button" id="create-issue-cancel-btn" class="btn-secondary">Отмена</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="time-entry-modal" class="modal hidden">
+      <div class="modal-content">
+        <h3>Добавить трудозатраты</h3>
+        <form id="time-entry-form" class="field-rows">
+          <div class="field-row">
+            <label for="time-entry-issue-id">Задача #</label>
+            <input id="time-entry-issue-id" type="number" required />
+          </div>
+          <div class="field-row">
+            <label for="time-entry-hours">Часы <span class="req">*</span></label>
+            <input id="time-entry-hours" type="number" step="any" min="0.25" required />
+            <span class="field-error">Укажите часы больше 0</span>
+          </div>
+          <div class="field-row">
+            <label for="time-entry-activity">Вид деятельности <span class="req">*</span></label>
+            <select id="time-entry-activity" required></select>
+            <span class="field-error">Выберите вид деятельности</span>
+          </div>
+          <div class="field-row">
+            <label for="time-entry-date">Дата</label>
+            <input id="time-entry-date" type="date" required />
+          </div>
+          <div class="field-row">
+            <label for="time-entry-comments">Комментарий <span class="req">*</span></label>
+            <textarea id="time-entry-comments" rows="2" required></textarea>
+            <span class="field-error">Укажите комментарий</span>
+          </div>
+          <input type="hidden" id="time-entry-edit-id" value="" />
+          <div class="actions">
+            <button type="submit" class="btn-primary">Сохранить</button>
+            <button type="button" id="time-entry-cancel-btn" class="btn-secondary">Отмена</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="bulk-status-confirm-modal" class="modal hidden">
+      <div class="modal-content">
+        <h3>Массовая смена статуса</h3>
+        <p id="bulk-status-confirm-text"></p>
+        <div class="actions">
+          <button type="button" id="bulk-status-confirm-btn" class="btn-primary">Подтвердить</button>
+          <button type="button" id="bulk-status-cancel-btn" class="btn-secondary">Отмена</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="quick-open-modal" class="modal hidden">
+      <div class="modal-content">
+        <h3>Открыть задачу по ссылке</h3>
+        <input
+          id="quick-open"
+          type="text"
+          placeholder="Например: https://example.redmine.com/issues/12345 или 12345"
+        />
+        <div class="actions">
+          <button type="button" id="quick-open-btn" class="btn-primary">Перейти</button>
+          <button type="button" id="close-quick-open-btn" class="btn-secondary">Закрыть</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="sync-progress-overlay" class="sync-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="sync-progress-title">
+      <div class="sync-card">
+        <div class="sync-spinner" aria-hidden="true"></div>
+        <h2 id="sync-progress-title" class="sync-title">Полная пересинхронизация</h2>
+
+        <div class="sync-progress-track">
+          <div id="sync-progress-fill" class="sync-progress-fill" style="width:0%"></div>
+        </div>
+        <div id="sync-progress-percent" class="sync-progress-percent">0%</div>
+
+        <div id="sync-project-line" class="sync-line">Подготовка&hellip;</div>
+        <div id="sync-detail-line" class="sync-line sync-line--muted">Загружаем задачи и историю изменений&hellip;</div>
+
+        <p id="sync-warning-text" class="sync-warning">
+          Не закрывайте приложение во время синхронизации. Прерывание оставит кэш неполным:
+          часть проектов может обновиться, часть — нет.
+        </p>
+
+        <div class="sync-actions">
+          <button type="button" id="sync-minimize-btn" class="link-btn">Свернуть и работать дальше</button>
+          <button type="button" id="sync-cancel-btn" class="btn-secondary btn-sm">Отменить синхронизацию</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="edit-sync-projects-modal" class="modal hidden" role="dialog" aria-modal="true" aria-labelledby="edit-sync-projects-title">
+      <div class="modal-content edit-sync-projects-content">
+        <h3 id="edit-sync-projects-title">Синхронизируемые проекты</h3>
+        <p class="settings-popover-hint">
+          Отметьте проекты, которые нужно хранить в локальном кэше.
+          Новые проекты будут загружены, снятые — очищены из кэша приложения.
+        </p>
+        <div class="multi-select-actions edit-sync-projects-actions">
+          <button type="button" id="edit-sync-select-all" class="link-btn">Выбрать все</button>
+          <button type="button" id="edit-sync-clear-all" class="link-btn">Снять все</button>
+          <span id="edit-sync-selected-count" class="muted">Выбрано: 0</span>
+        </div>
+        <div id="edit-sync-projects-list" class="checklist edit-sync-projects-list"></div>
+        <div class="actions">
+          <button type="button" id="edit-sync-projects-save-btn" class="btn-primary">Сохранить</button>
+          <button type="button" id="edit-sync-projects-cancel-btn" class="btn-secondary">Отмена</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="image-lightbox" class="image-lightbox hidden">
+      <img id="image-lightbox-img" alt="Скриншот" />
+    </div>
+
+    <div id="preview-backdrop" class="preview-backdrop hidden"></div>
+    <aside id="preview-drawer" class="preview-drawer hidden">
+      <div class="preview-header">
+        <button type="button" id="preview-close-btn" class="preview-close" aria-label="Закрыть">&times;</button>
+        <div class="preview-header-main">
+          <h3 id="preview-title">&nbsp;</h3>
+          <span id="preview-status-pill" class="preview-status-pill"></span>
+        </div>
+      </div>
+      <div class="preview-body">
+        <div id="preview-skeleton" class="preview-skeleton hidden">
+          <div class="skeleton-bar" style="width:60%"></div>
+          <div class="skeleton-bar" style="width:90%"></div>
+          <div class="skeleton-bar" style="width:80%"></div>
+          <div class="skeleton-bar" style="width:95%"></div>
+          <div class="skeleton-bar" style="width:70%"></div>
+        </div>
+        <div id="preview-content" class="preview-content">
+          <div id="preview-meta-grid" class="kv-grid preview-meta-grid"></div>
+          <section class="preview-section">
+            <h4>Описание</h4>
+            <div id="preview-description" class="preview-description issue-text"></div>
+          </section>
+          <section id="preview-attachments-section" class="preview-section hidden">
+            <h4>Вложения</h4>
+            <div id="preview-attachments" class="preview-attachments-grid"></div>
+          </section>
+          <section id="preview-comment-section" class="preview-section hidden">
+            <h4>Последний комментарий</h4>
+            <div id="preview-comment" class="preview-comment-card"></div>
+          </section>
+          <section id="preview-subtasks-section" class="preview-section hidden">
+            <h4>Подзадачи</h4>
+            <div id="preview-subtasks" class="linked-issues-list"></div>
+          </section>
+        </div>
+      </div>
+      <div class="preview-footer">
+        <span class="muted">Данные из локального кэша</span>
+        <button type="button" id="preview-goto-btn" class="btn-primary">Перейти в задачу</button>
+      </div>
+    </aside>
+
+    <div id="app-toast" class="app-toast hidden" role="status" aria-live="polite"></div>
+
+    <div id="list-inline-popover" class="list-inline-popover hidden" role="dialog" aria-label="Быстрое изменение">
+      <div id="list-inline-popover-body" class="list-inline-popover-body"></div>
+    </div>
+
+    <div id="issue-context-menu" class="context-menu hidden" role="menu" aria-label="Массовые действия">
+      <div class="context-menu-header" id="context-menu-header"></div>
+      <div class="context-menu-status-list" id="context-menu-status-list"></div>
+    </div>
+
+    <script>
+      // Chip UI for list filters: popovers, add/remove, assignee lock on scope «Мои»,
+      // due period/empty toggle. Real data/query wiring lives in renderer.js.
+      (function () {
+        function closeAllChipPopovers(except) {
+          document.querySelectorAll(".filter-chip-popover").forEach(function (p) {
+            if (p !== except) p.classList.add("hidden");
+          });
+        }
+
+        document.querySelectorAll("#filters-chips-row .filter-chip-label").forEach(function (labelBtn) {
+          labelBtn.addEventListener("click", function (e) {
+            e.stopPropagation();
+            var chip = labelBtn.closest(".filter-chip");
+            if (!chip || chip.classList.contains("chip-hidden")) return;
+            if (chip.classList.contains("filter-chip-locked") && chip.id === "assignee-chip") return;
+            var pop = chip.querySelector(".filter-chip-popover");
+            if (!pop) return;
+            var willOpen = pop.classList.contains("hidden");
+            closeAllChipPopovers();
+            if (willOpen) pop.classList.remove("hidden");
+          });
+        });
+
+        document.addEventListener("click", function (e) {
+          if (!e.target.closest("#filters-chips-row .filter-chip")) closeAllChipPopovers();
+        });
+
+        function resetAndDispatch(el, value) {
+          if (!el) return;
+          el.value = value;
+          el.dispatchEvent(new Event("change", { bubbles: true }));
+        }
+
+        function notifyFiltersChanged() {
+          document.dispatchEvent(new CustomEvent("rm-filters-changed"));
+        }
+
+        document.querySelectorAll("#filters-chips-row .filter-chip-remove").forEach(function (btn) {
+          btn.addEventListener("click", function (e) {
+            e.stopPropagation();
+            var chip = document.getElementById(btn.getAttribute("data-chip-remove"));
+            if (!chip || chip.classList.contains("filter-chip-locked")) return;
+            chip.classList.add("chip-hidden");
+            var pop = chip.querySelector(".filter-chip-popover");
+            if (pop) pop.classList.add("hidden");
+            if (chip.id === "status-chip") {
+              document.querySelectorAll("#status-filter-list input[type='checkbox']").forEach(function (cb) {
+                cb.checked = false;
+              });
+              notifyFiltersChanged();
+            } else if (chip.id === "priority-chip") {
+              document.querySelectorAll("#priority-filter-list input[type='checkbox']").forEach(function (cb) {
+                cb.checked = false;
+              });
+              notifyFiltersChanged();
+            } else if (chip.id === "assignee-chip") {
+              var sel = document.getElementById("assignee-filter");
+              if (sel) {
+                if (Array.prototype.some.call(sel.options, function (o) { return o.value === "all"; })) {
+                  sel.value = "all";
+                } else {
+                  sel.selectedIndex = 0;
+                }
+                sel.dispatchEvent(new Event("change", { bubbles: true }));
+              }
+            } else if (chip.id === "author-chip") {
+              document.querySelectorAll("#author-filter-list input[type='checkbox']").forEach(function (cb) {
+                cb.checked = false;
+              });
+              notifyFiltersChanged();
+            } else if (chip.id === "due-chip") {
+              resetAndDispatch(document.getElementById("due-from"), "");
+              resetAndDispatch(document.getElementById("due-to"), "");
+              var empty = document.getElementById("due-empty-only");
+              if (empty) {
+                empty.checked = false;
+                empty.dispatchEvent(new Event("change", { bubbles: true }));
+              }
+              setDueMode("period", true);
+              updateDueSummary();
+              notifyFiltersChanged();
+            }
+          });
+        });
+
+        var addBtn = document.getElementById("add-list-filter-btn");
+        var addPopover = document.getElementById("add-list-filter-popover");
+        if (addBtn && addPopover) {
+          addBtn.addEventListener("click", function (e) {
+            e.stopPropagation();
+            addPopover.classList.toggle("hidden");
+          });
+          document.addEventListener("click", function (e) {
+            if (!e.target.closest("#filters-chips-row .add-filter-anchor")) addPopover.classList.add("hidden");
+          });
+          addPopover.querySelectorAll(".filter-option").forEach(function (opt) {
+            opt.addEventListener("click", function () {
+              if (opt.disabled) return;
+              var chip = document.getElementById(opt.getAttribute("data-chip-target"));
+              if (!chip) return;
+              chip.classList.remove("chip-hidden");
+              addPopover.classList.add("hidden");
+              var labelBtn = chip.querySelector(".filter-chip-label");
+              if (labelBtn) labelBtn.click();
+              notifyFiltersChanged();
+            });
+          });
+        }
+
+        function updateStatusSummary() {
+          var list = document.getElementById("status-filter-list");
+          var summary = document.getElementById("status-filter-summary");
+          if (!list || !summary) return;
+          var boxes = Array.prototype.slice.call(list.querySelectorAll("input[type='checkbox']"));
+          var checked = boxes.filter(function (b) { return b.checked; });
+          summary.textContent =
+            checked.length === 0 || (boxes.length && checked.length === boxes.length)
+              ? "Все статусы"
+              : "Выбрано " + checked.length;
+        }
+
+        var statusList = document.getElementById("status-filter-list");
+        if (statusList) {
+          statusList.addEventListener("change", updateStatusSummary);
+          new MutationObserver(updateStatusSummary).observe(statusList, { childList: true, subtree: true });
+        }
+
+        var assigneeSelect = document.getElementById("assignee-filter");
+        function syncAssigneeChipLabel() {
+          var summary = document.getElementById("assignee-chip-summary");
+          if (!summary || !assigneeSelect) return;
+          var chip = document.getElementById("assignee-chip");
+          if (chip && chip.classList.contains("filter-chip-locked")) {
+            summary.textContent = "Я (фикс.)";
+            return;
+          }
+          var opt = assigneeSelect.options[assigneeSelect.selectedIndex];
+          summary.textContent = (opt && opt.textContent.trim()) || "Все";
+        }
+        if (assigneeSelect) {
+          assigneeSelect.addEventListener("change", syncAssigneeChipLabel);
+        }
+
+        function updateAssigneeLock() {
+          var activeScopeBtn = document.querySelector("#issue-scope-toggle .scope-btn.active");
+          var isMine = !!activeScopeBtn && activeScopeBtn.getAttribute("data-issue-scope") === "mine";
+          var chip = document.getElementById("assignee-chip");
+          if (!chip) return;
+          var removeBtn = chip.querySelector(".filter-chip-remove");
+          var addOption = document.getElementById("add-filter-assignee-option");
+          var lockHint = document.getElementById("assignee-filter-lock-hint");
+          if (isMine) {
+            chip.classList.remove("chip-hidden");
+            chip.classList.add("filter-chip-locked");
+            if (removeBtn) removeBtn.style.display = "none";
+            if (addOption) {
+              addOption.disabled = true;
+              addOption.classList.add("filter-option-disabled");
+            }
+            if (lockHint) lockHint.classList.add("hidden");
+            chip.title = "В режиме «Мои» исполнитель зафиксирован на текущего пользователя";
+            var summary = document.getElementById("assignee-chip-summary");
+            if (summary) summary.textContent = "Я (фикс.)";
+            closeAllChipPopovers();
+          } else {
+            chip.classList.remove("filter-chip-locked");
+            if (removeBtn) removeBtn.style.display = "";
+            if (addOption) {
+              addOption.disabled = false;
+              addOption.classList.remove("filter-option-disabled");
+            }
+            if (lockHint) lockHint.classList.add("hidden");
+            chip.removeAttribute("title");
+            syncAssigneeChipLabel();
+          }
+        }
+
+        function formatDate(iso) {
+          if (!iso) return "";
+          var parts = String(iso).split("-");
+          return parts.length === 3 ? parts[2] + "." + parts[1] : iso;
+        }
+
+        function updateDueSummary() {
+          var fromEl = document.getElementById("due-from");
+          var toEl = document.getElementById("due-to");
+          var emptyEl = document.getElementById("due-empty-only");
+          var summary = document.getElementById("due-chip-summary");
+          if (!summary) return;
+          var from = fromEl ? fromEl.value : "";
+          var to = toEl ? toEl.value : "";
+          var emptyOnly = !!(emptyEl && emptyEl.checked);
+          if (emptyOnly) summary.textContent = "не задан";
+          else if (from && to) summary.textContent = formatDate(from) + " — " + formatDate(to);
+          else if (from) summary.textContent = "с " + formatDate(from);
+          else if (to) summary.textContent = "по " + formatDate(to);
+          else summary.textContent = "любой";
+        }
+
+        function setDueMode(mode, skipDispatch) {
+          var popover = document.getElementById("due-filter-field");
+          if (!popover) return;
+          var periodBtn = popover.querySelector('[data-due-mode="period"]');
+          var emptyBtn = popover.querySelector('[data-due-mode="empty"]');
+          var range = document.getElementById("due-range-controls");
+          var rangeInputs = range ? range.querySelectorAll("input") : [];
+          var emptyCheckbox = document.getElementById("due-empty-only");
+          var isEmpty = mode === "empty";
+          if (emptyCheckbox) emptyCheckbox.checked = isEmpty;
+          rangeInputs.forEach(function (i) {
+            i.disabled = isEmpty;
+          });
+          if (periodBtn) periodBtn.classList.toggle("active", !isEmpty);
+          if (emptyBtn) emptyBtn.classList.toggle("active", isEmpty);
+          if (!skipDispatch && emptyCheckbox) {
+            emptyCheckbox.dispatchEvent(new Event("change", { bubbles: true }));
+          }
+          updateDueSummary();
+        }
+
+        document.querySelectorAll(".due-mode-btn").forEach(function (btn) {
+          btn.addEventListener("click", function (e) {
+            e.stopPropagation();
+            setDueMode(btn.getAttribute("data-due-mode"));
+          });
+        });
+        ["due-from", "due-to"].forEach(function (id) {
+          var el = document.getElementById(id);
+          if (!el) return;
+          el.addEventListener("change", function () {
+            if (document.getElementById("due-empty-only")?.checked) setDueMode("period");
+            else updateDueSummary();
+          });
+        });
+
+        function setChipVisible(chipId, visible) {
+          var chip = document.getElementById(chipId);
+          if (!chip) return;
+          chip.classList.toggle("chip-hidden", !visible);
+          if (!visible) {
+            var pop = chip.querySelector(".filter-chip-popover");
+            if (pop) pop.classList.add("hidden");
+          }
+        }
+
+        function isChipVisible(chipId) {
+          var chip = document.getElementById(chipId);
+          return !!(chip && !chip.classList.contains("chip-hidden"));
+        }
+
+        window.FilterChips = {
+          updateAssigneeLock: updateAssigneeLock,
+          updateStatusSummary: updateStatusSummary,
+          updateDueSummary: updateDueSummary,
+          setDueMode: setDueMode,
+          setChipVisible: setChipVisible,
+          isChipVisible: isChipVisible,
+          syncAssigneeChipLabel: syncAssigneeChipLabel,
+          closeAllPopovers: closeAllChipPopovers,
+        };
+
+        updateAssigneeLock();
+        updateDueSummary();
+        updateStatusSummary();
+      })();
+    </script>
+    <script>
+      (function () {
+        var THEME_KEY = "redmine-client:theme";
+        var switcher = document.getElementById("theme-switcher");
+        if (!switcher) return;
+
+        function applyTheme(theme, persist) {
+          if (theme !== "dark" && theme !== "sepia") theme = "sepia";
+          document.documentElement.setAttribute("data-theme", theme);
+          switcher.querySelectorAll(".scope-btn").forEach(function (b) {
+            b.classList.toggle("active", b.getAttribute("data-theme-value") === theme);
+          });
+          if (persist) {
+            try {
+              localStorage.setItem(THEME_KEY, theme);
+            } catch (e) {}
+          }
+        }
+
+        var saved = null;
+        try {
+          saved = localStorage.getItem(THEME_KEY);
+        } catch (e) {}
+        applyTheme(saved || document.documentElement.getAttribute("data-theme") || "sepia", false);
+
+        switcher.addEventListener("click", function (e) {
+          var btn = e.target.closest("[data-theme-value]");
+          if (!btn) return;
+          applyTheme(btn.getAttribute("data-theme-value"), true);
+        });
+      })();
+    </script>
+    <script src="./priority-color.js"></script>
+    <script src="./status-colorizer.js"></script>
+    <script src="./list-settings.js"></script>
+    <script src="./ui-controls.js"></script>
+    <script src="./textile-images.js"></script>
+    <script src="./text-format.js"></script>
+    <script src="./issue-sort.js"></script>
+    <script src="./renderer.js"></script>
+    <script src="./agile-board.js"></script>
+    <!--
+      To make screenshots pasted as Redmine "!filename.png!" tokens render as
+      images instead of raw text, call window.renderTextileImages(raw, map)
+      in renderer.js when building #issue-description / #issue-journals HTML
+      (see textile-images.js for the exact call). It's a no-op include until
+      renderer.js calls it — nothing changes if you don't wire it up yet.
+
+      New in this pass (see brief screens 2/3/5/6):
+      - #issue-related-chip: renderer.js should scan the subject for "#NNNN"
+        and set href="#/issues/NNNN" + text "Открыть связанную #NNNN", then
+        remove the hidden class. Left hidden/empty otherwise.
+      - #issue-children / #issue-relations: fill with .linked-issue-item rows
+        (see linked-issues-list CSS) and drop the .hidden class off the wrapping
+        #issue-children-block / #issue-relations-block section when there is data.
+      - #create-issue-modal: static form only — wire #create-issue-btn to open it,
+        populate the selects from the cached reference data, and POST on submit.
+      - #sync-projects-list / #cache-db-size / #cache-issues-count /
+        #settings-autosync-toggle / #autosync-interval: settings-panel additions,
+        populate from the local cache/sync state.
+    -->
+
+  </body>
+</html>

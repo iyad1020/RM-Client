@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="ru" data-theme="sepia">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RM Client — настройка</title>
+    <link rel="icon" type="image/png" href="./assets/icon.png" />
+    <script>
+      (function () {
+        try {
+          var theme = localStorage.getItem("redmine-client:theme");
+          if (theme === "dark" || theme === "sepia" || theme === "light") {
+            document.documentElement.setAttribute("data-theme", theme);
+          }
+        } catch (e) {}
+      })();
+    </script>
+    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="./onboarding.css" />
+    <link rel="stylesheet" href="./product-tour.css" />
+  </head>
+  <body class="wizard-body-root">
+    <div class="wizard-shell">
+      <div class="wizard-card">
+        <div class="wizard-header">
+          <div class="wizard-brand">
+            <img class="wizard-brand-logo" src="./assets/icon.png" alt="" width="28" height="28" />
+            <span class="wizard-brand-name">RM Client</span>
+          </div>
+          <div class="wizard-progress" id="wizard-progress">
+            <div class="wizard-step-dot" data-dot="1">1</div>
+            <div class="wizard-progress-line"></div>
+            <div class="wizard-step-dot" data-dot="2">2</div>
+            <div class="wizard-progress-line"></div>
+            <div class="wizard-step-dot" data-dot="3">3</div>
+          </div>
+          <div class="wizard-step-label" id="wizard-step-label">Шаг 1 из 3</div>
+        </div>
+
+        <div class="wizard-body">
+          <!-- Step 1 -->
+          <section class="wizard-step" data-step="1">
+            <h2 class="wizard-title">Подключение к Redmine</h2>
+            <p class="wizard-subtitle">Укажите адрес сервера и API-ключ вашей учётной записи.</p>
+
+            <div class="field-rows" style="max-width:480px">
+              <div class="field-row">
+                <label for="wizard-url">URL Redmine</label>
+                <input id="wizard-url" type="url" placeholder="https://example.redmine.com" value="" />
+                <span class="field-hint">Скопируйте адрес из браузера, когда открыт Redmine — только корень сайта, без <code>/projects/…</code> в конце</span>
+              </div>
+              <div class="field-row">
+                <label for="wizard-api-key">API key</label>
+                <input id="wizard-api-key" type="password" placeholder="Ваш API key" />
+                <span class="field-hint">Redmine → «Моя учётная запись» → «Ключ доступа к API» → «Показать»</span>
+              </div>
+            </div>
+
+            <div class="credentials-help">
+              <details class="credentials-help-details" open>
+                <summary>Где взять URL и API key?</summary>
+                <div class="credentials-help-body">
+                  <p><strong>URL Redmine</strong> — откройте Redmine в браузере и скопируйте адрес из адресной строки до первого слэша после домена. Пример: <code>https://redmine.company.ru</code>.</p>
+                  <p><strong>API key</strong> — в правом верхнем углу нажмите «Моя учётная запись», найдите «Ключ доступа к API» и нажмите «Показать».</p>
+                  <div class="api-key-guide" aria-hidden="true">
+                    <div class="api-key-guide-top">
+                      <span class="api-key-guide-brand">Redmine</span>
+                      <div class="api-key-guide-userbar">
+                        <span class="api-key-guide-muted">Вошли как user</span>
+                        <span class="api-key-guide-pill is-target">
+                          Моя учётная запись
+                          <svg class="api-key-guide-arrow" viewBox="0 0 18 18" aria-hidden="true">
+                            <path d="M9 2v11M4 9l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+                          </svg>
+                        </span>
+                        <span class="api-key-guide-muted">Выйти</span>
+                      </div>
+                    </div>
+                    <div class="api-key-guide-body">
+                      <h3 class="api-key-guide-title">Моя учётная запись</h3>
+                      <p class="api-key-guide-meta">Пользователь · страница настроек в браузере</p>
+                      <div class="api-key-guide-card">
+                        <div class="api-key-guide-row">
+                          <span class="api-key-guide-label">Ключ доступа к Atom</span>
+                          <span class="api-key-guide-side">создан ранее · Сбросить</span>
+                        </div>
+                        <div class="api-key-guide-row">
+                          <span class="api-key-guide-label">Ключ доступа к API</span>
+                          <span class="api-key-guide-side">
+                            <span class="api-key-guide-show is-target">
+                              Показать
+                              <svg class="api-key-guide-arrow" viewBox="0 0 18 18" aria-hidden="true">
+                                <path d="M9 2v11M4 9l5 5 5-5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" />
+                              </svg>
+                            </span>
+                            · Сбросить
+                          </span>
+                        </div>
+                      </div>
+                      <div class="api-key-guide-steps">
+                        <span class="api-key-guide-step"><span class="api-key-guide-step-num">1</span> Моя учётная запись</span>
+                        <span class="api-key-guide-step"><span class="api-key-guide-step-num">2</span> Ключ доступа к API</span>
+                        <span class="api-key-guide-step"><span class="api-key-guide-step-num">3</span> Показать</span>
+                      </div>
+                    </div>
+                  </div>
+                  <p class="credentials-help-figure figcaption" style="margin-top:10px;font-size:11.5px;opacity:0.8">Скопируйте показанный ключ в поле API key выше</p>
+                </div>
+              </details>
+            </div>
+
+            <button type="button" id="wizard-check-btn" class="btn-secondary" style="margin-top:6px">Проверить подключение</button>
+
+            <div id="wizard-check-success" class="wizard-check-result wizard-check-success hidden">
+              <span class="wizard-check-icon">&#10003;</span>
+              <div>
+                <div class="wizard-check-title">Подключено</div>
+                <div class="wizard-check-detail">Вы вошли как <strong id="wizard-check-username"></strong></div>
+              </div>
+            </div>
+
+            <div id="wizard-check-error" class="wizard-check-result wizard-check-error hidden">
+              <span class="wizard-check-icon">&#33;</span>
+              <div>
+                <div class="wizard-check-title">Не удалось подключиться</div>
+                <div class="wizard-check-detail">Проверьте URL и API-ключ и попробуйте снова</div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Step 2 -->
+          <section class="wizard-step hidden" data-step="2">
+            <h2 class="wizard-title">Выберите проекты для синхронизации</h2>
+            <p class="wizard-subtitle">Рекомендуем 4–5 активных проектов — так список задач останется быстрым и не перегруженным.</p>
+
+            <div class="wizard-project-toolbar">
+              <input id="project-search" type="search" placeholder="Поиск проекта&hellip;" class="wizard-search" />
+              <div class="wizard-project-toolbar-actions">
+                <button type="button" id="select-all-btn" class="link-btn">Выбрать все</button>
+                <button type="button" id="deselect-all-btn" class="link-btn">Снять все</button>
+              </div>
+            </div>
+
+            <div id="project-checklist" class="wizard-project-list">
+              <div class="wizard-empty muted">Сначала проверьте подключение на шаге 1</div>
+            </div>
+
+            <div class="wizard-project-footer">
+              <span id="selected-count" class="muted">Выбрано: 0</span>
+            </div>
+          </section>
+
+          <!-- Step 3 -->
+          <section class="wizard-step hidden" data-step="3">
+            <h2 class="wizard-title">Настройка кэша</h2>
+            <p class="wizard-subtitle">Что хранить локально, чтобы карточка задачи открывалась мгновенно.</p>
+
+            <div class="wizard-radio-group" id="cache-mode-group" role="radiogroup" aria-label="Режим кэша">
+              <label class="wizard-radio-card">
+                <input type="radio" name="cache-mode" value="issues-only" />
+                <span class="wizard-radio-dot"></span>
+                <span class="wizard-radio-body">
+                  <span class="wizard-radio-title">Только задачи</span>
+                  <span class="wizard-radio-desc">Минимум места на диске, история и вложения — по запросу с сервера</span>
+                </span>
+              </label>
+              <label class="wizard-radio-card">
+                <input type="radio" name="cache-mode" value="issues-history" checked />
+                <span class="wizard-radio-dot"></span>
+                <span class="wizard-radio-body">
+                  <span class="wizard-radio-title">Задачи + история</span>
+                  <span class="wizard-radio-desc">Журнал изменений и комментарии открываются без сети</span>
+                </span>
+              </label>
+              <label class="wizard-radio-card">
+                <input type="radio" name="cache-mode" value="issues-history-attachments" />
+                <span class="wizard-radio-dot"></span>
+                <span class="wizard-radio-body">
+                  <span class="wizard-radio-title">Задачи + история + вложения по запросу</span>
+                  <span class="wizard-radio-desc">Вложения скачиваются и кэшируются при первом открытии</span>
+                </span>
+              </label>
+            </div>
+
+            <label class="wizard-toggle-row">
+              <span class="wizard-toggle-text">
+                <span class="wizard-toggle-title">Автосинхронизация каждые 5 мин</span>
+                <span class="wizard-toggle-desc">Список задач будет обновляться в фоне без нажатия «Обновить»</span>
+              </span>
+              <span class="switch">
+                <input type="checkbox" id="autosync-toggle" checked />
+                <span class="switch-track"><span class="switch-thumb"></span></span>
+              </span>
+            </label>
+
+            <button type="button" id="start-sync-btn" class="btn-primary wizard-cta">Начать синхронизацию</button>
+          </section>
+        </div>
+
+        <div class="wizard-footer">
+          <button type="button" id="wizard-back-btn" class="btn-secondary hidden">Назад</button>
+          <button type="button" id="wizard-skip-btn" class="btn-ghost">Настроить позже</button>
+          <div style="flex:1"></div>
+          <button type="button" id="wizard-next-btn" class="btn-primary" disabled>Далее</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="sync-progress-overlay" class="sync-overlay hidden">
+      <div class="sync-card">
+        <div class="sync-spinner"></div>
+        <h2 class="sync-title">Синхронизация проектов</h2>
+
+        <div class="sync-progress-track">
+          <div id="sync-progress-fill" class="sync-progress-fill" style="width:0%"></div>
+        </div>
+        <div id="sync-progress-percent" class="sync-progress-percent">0%</div>
+
+        <div id="sync-project-line" class="sync-line">Подготовка&hellip;</div>
+        <div id="sync-detail-line" class="sync-line sync-line--muted">Загружаем справочники&hellip;</div>
+
+        <div class="sync-actions">
+          <a id="sync-work-later-link" href="./index.html" class="link-btn">Можно свернуть и работать позже</a>
+          <button type="button" id="sync-cancel-btn" class="btn-secondary btn-sm">Отменить</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="./onboarding.js"></script>
+  </body>
+</html>

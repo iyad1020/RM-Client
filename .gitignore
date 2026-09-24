@@ -1,0 +1,56 @@
+# Local / internal docs (not for GitHub)
+DESKTOP_REDMINE_FIRST_STEP.md
+PROJECT_STATUS.md
+TRACKER_CURSOR_*.md
+
+dist/
+release-dist/
+out/
+C:/Temp/RMClientDist/
+*.exe
+!build/**
+
+# Secrets & local overrides (never commit)
+.env
+.env.*
+*.pem
+*.p12
+*.pfx
+credentials.json
+sync/cloud-oauth.local.js
+**/cloud-oauth.local.js
+
+# Local app data / DBs (live in %APPDATA%\rm-client, not the repo)
+*.db
+*.db-shm
+*.db-wal
+settings.json
+**/settings.json
+backups/
+*.bak
+
+# Logs & OS junk
+*.log
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*~
+
+# Dead / scratch UI dumps (not part of the app)
+renderer/uploads/
+renderer/_recovered_renderer.js
+renderer/Redmine Client Options.dc.html
+
+# Dependencies
+node_modules/
+
+# Test / coverage / vitest cache
+coverage/
+.nyc_output/
+
+# Electron / forge leftovers
+.forge-meta
+**/.thumbnail
+.thumbnail
